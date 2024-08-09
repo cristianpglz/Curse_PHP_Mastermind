@@ -1,16 +1,13 @@
 <?php
 
-$host = "localhost";
-$database = "contacts_app";
-$user = "root";
-$password = "";
+$dsn = 'mysql:host=localhost;dbname=contacts_app';
+$user = 'root'; // o el nombre de usuario que corresponda
+$password = ''; // o la contraseña que corresponda
 
 try {
-  $conn = new PDO("mysql:host=$host;dbname=$database", $user, $password);
-  // foreach ($conn->query("SHOW DATABASES") as $row) {
-  //   print_r($row);
-  // }
-  // die();
+    $conn = new PDO($dsn, $user, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-  die("PDO Connection Error: " . $e->getMessage());
+    echo 'Connection failed: ' . $e->getMessage();
 }
+?>

@@ -1,42 +1,47 @@
 <?php
 
-  require "database.php";
+require "database.php";
 
-  $error = null;
+$error = null;
 
-  if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($_POST["name"]) || empty($_POST["email"]) || empty($_POST["password"])) {
-      $error = "Please fill all the fileds.";
+        $error = "Please fill all the fields.";
     } else if (!str_contains($_POST["email"], "@")) {
-      $error = "Email format is incorrect.";
+        $error = "Email format is incorrect.";
     } else {
-      $statement = $conn->prepare("SELECT * FROM users WHERE email = :email");
-      $statement->bindParam(":email", $_POST["email"]);
-      $statement->execute();
+        // Consulta para verificar si el email ya existe
+        $statement = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+        $statement->bindParam(":email", $_POST["email"]);
+        $statement->execute();
 
-      if ($statement->rowCount() > 0) {
-        $error = "This email is taken.";
-      } else {
-        $conn
-          ->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)")
-          ->execute([
-            ":name" => $_POST["name"],
-            ":email" => $_POST["email"],
-            ":password" => password_hash($_POST["password"], PASSWORD_BCRYPT),
-          ]);
+        if ($statement->rowCount() > 0) {
+            $error = "This email is taken.";
+        } else {
+            // Inserción de nuevo usuario
+            $conn
+                ->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)")
+                ->execute([
+                    ":name" => $_POST["name"],
+                    ":email" => $_POST["email"],
+                    ":password" => password_hash($_POST["password"], PASSWORD_BCRYPT),
+                ]);
 
-          $statement = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-          $statement->bindParam(":email", $_POST["email"]);
-          $statement->execute();
-          $user = $statement->fetch(PDO::FETCH_ASSOC);
+            // Obtener el usuario recién insertado
+            $statement = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+            $statement->bindParam(":email", $_POST["email"]);
+            $statement->execute();
+            $user = $statement->fetch(PDO::FETCH_ASSOC);
 
-          session_start();
-          $_SESSION["user"] = $user;
+            // Iniciar sesión y redirigir
+            session_start();
+            $_SESSION["user"] = $user;
 
-          header("Location: home.php");
-      }
-    }
-  }
+            header("Location: home.php");
+              }
+            }
+          }
+        
 ?>
 
 <?php require "partials/header.php" ?>

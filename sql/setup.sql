@@ -16,6 +16,18 @@ CREATE TABLE contacts (
     name VARCHAR(255),
     user_id INT NOT NULL,
     phone_number VARCHAR(255),
-
+    adress VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+CREATE TABLE addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    contact_id INT NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    FOREIGN KEY (contact_id) REFERENCES contacts(id)
+);
+
+
+ALTER TABLE contacts ADD COLUMN user_id INT NOT NULL;
+SELECT * FROM contacts WHERE id = :id;
+
+
