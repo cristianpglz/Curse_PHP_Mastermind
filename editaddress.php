@@ -1,7 +1,6 @@
 <?php
 
 require "database.php";
-
 session_start();
 
 if (!isset($_SESSION["user"])) {
@@ -37,17 +36,29 @@ if ((int)$contact["user_id"] !== (int)$_SESSION["user"]["id"]) {
     exit;
 }
 
-// Obtener las direcciones asociadas al contacto
+// Obtener direcciones asociadas al contacto
 $addressStatement = $conn->prepare("SELECT * FROM addresses WHERE contact_id = :contact_id");
 $addressStatement->execute([":contact_id" => $id]);
 $addresses = $addressStatement->fetchAll(PDO::FETCH_ASSOC);
-
-// Debugging: Verificar el contenido de $addresses
-var_dump($addresses);
-
 $error = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST["delete_selected"])) {
+        $deleteIds = $_POST["delete_ids"] ?? [];
+        if (!empty($deleteIds)) {
+            $deleteIds = array_map('intval', $deleteIds); // Sanitiza los IDs
+            $placeholders = rtrim(str_repeat('?,', count($deleteIds)), ',');
+            $deleteAddressesStatement = $conn->prepare("DELETE FROM addresses WHERE id IN ($placeholders) AND contact_id = ?");
+            $deleteIds[] = $id; // Añadir el ID del contacto como último parámetro
+            $deleteAddressesStatement->execute($deleteIds);
+            
+            $_SESSION["flash"] = ["message" => "Selected addresses deleted."];
+            header("Location: editaddress.php?id=" . $id);
+            exit;
+        }
+    }
+
+    // Manejo de actualización de direcciones
     $addresses = $_POST["addresses"] ?? [];
 
     if (empty($addresses)) {
@@ -83,38 +94,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">Edit Addresses</div>
+                <div class="card-header text-center">Edit Addresses</div>
                 <div class="card-body">
                     <?php if ($error): ?>
-                        <p class="text-danger"><?= htmlspecialchars($error) ?></p>
+                        <p class="text-danger text-center"><?= htmlspecialchars($error) ?></p>
                     <?php endif ?>
+
                     <form method="POST" action="editaddress.php?id=<?= htmlspecialchars($contact['id']) ?>">
                         <div id="addresses-container">
                             <?php if (count($addresses) > 0): ?>
                                 <?php foreach ($addresses as $index => $address): ?>
-                                    <div class="mb-3 row">
-                                        <label for="address<?= $index ?>" class="col-md-4 col-form-label text-md-end">Address</label>
-                                        <div class="col-md-6">
-                                            <input id="address<?= $index ?>" value="<?= htmlspecialchars($address['address']) ?>" type="text" class="form-control" name="addresses[]">
+                                    <div class="mb-3 row align-items-center">
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control small-address" name="addresses[]" value="<?= htmlspecialchars($address['address']) ?>">
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="<?= htmlspecialchars($address['id']) ?>">Delete</button>
                                         </div>
                                     </div>
                                 <?php endforeach ?>
                             <?php else: ?>
                                 <div class="mb-3 row">
-                                    <label for="address0" class="col-md-4 col-form-label text-md-end">Address</label>
-                                    <div class="col-md-6">
-                                        <input id="address0" type="text" class="form-control" name="addresses[]">
+                                    <div class="col-md-12">
+                                        <input type="text" class="form-control small-address" name="addresses[]" placeholder="Add new address">
                                     </div>
                                 </div>
                             <?php endif ?>
                         </div>
-                        
-                        <button type="button" id="add-address" class="btn btn-secondary">Add Another Address</button>
 
-                        <div class="mb-3 row">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">Submit</button>
-                            </div>
+                        <div class="text-center mb-3">
+                            <button type="button" id="add-address" class="btn btn-secondary">Add Another Address</button>
+                            <button type="submit" class="btn btn-primary">Update Addresses</button>
                         </div>
                     </form>
                 </div>
@@ -128,15 +138,61 @@ document.getElementById('add-address').addEventListener('click', function() {
     var container = document.getElementById('addresses-container');
     var index = container.getElementsByTagName('input').length; // Get the current number of inputs
     var newAddress = document.createElement('div');
-    newAddress.className = 'mb-3 row';
+    newAddress.className = 'mb-3 row align-items-center';
     newAddress.innerHTML = `
-        <label for="address${index}" class="col-md-4 col-form-label text-md-end">Address</label>
-        <div class="col-md-6">
-            <input id="address${index}" type="text" class="form-control" name="addresses[]">
+        <div class="col-md-8">
+            <input type="text" class="form-control small-address" name="addresses[]" placeholder="New address">
+        </div>
+        <div class="col-md-4 text-center">
+            <button type="button" class="btn btn-danger btn-sm delete-btn">Delete</button>
         </div>
     `;
     container.appendChild(newAddress);
 });
+
+// Handle delete button click
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete-btn')) {
+        if (confirm('Are you sure you want to delete this address?')) {
+            var button = event.target;
+            var addressId = button.getAttribute('data-id');
+            if (addressId) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'editaddress.php?id=<?= htmlspecialchars($contact['id']) ?>';
+                
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delete_ids[]';
+                input.value = addressId;
+                form.appendChild(input);
+                
+                var deleteSelectedInput = document.createElement('input');
+                deleteSelectedInput.type = 'hidden';
+                deleteSelectedInput.name = 'delete_selected';
+                deleteSelectedInput.value = '1';
+                form.appendChild(deleteSelectedInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    }
+});
 </script>
+
+<style>
+#addresses-container{
+    display: grid;
+    justify-content: center;
+}
+/* Estilo para hacer el cuadro de dirección más pequeño */
+.small-address {
+    width: 100%;
+    max-width: 200px; /* Tamaño máximo del cuadro de dirección */
+}
+.text-center 
+
+</style>
 
 <?php require "partials/footer.php" ?>

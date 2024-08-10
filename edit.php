@@ -87,18 +87,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <input value="<?= htmlspecialchars($contact['phone_number']) ?>" id="phone_number" type="tel" class="form-control" name="phone_number" autocomplete="phone_number">
                             </div>
                         </div>
-
-                        <div id="addresses-container">
-                            <?php foreach ($addresses as $address): ?>
-                                <div class="mb-3 row">
-                                    <label for="address" class="col-md-4 col-form-label text-md-end">Address</label>
-                                    <div class="col-md-6">
-                                        <input value="<?= htmlspecialchars($address['address']) ?>" type="text" class="form-control" name="addresses[]">
-                                    </div>
-                                </div>
-                            <?php endforeach ?>
-                        </div>
-                        
                         <div class="mb-3 row">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">Submit</button>

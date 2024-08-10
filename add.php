@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Get the ID of the newly inserted contact
         $contactId = $conn->lastInsertId();
-
+        
         // Insert addresses
         $addressStatement = $conn->prepare("INSERT INTO addresses (contact_id, address) VALUES (:contact_id, :address)");
         foreach ($addresses as $address) {
