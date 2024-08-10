@@ -123,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
 
                         <div class="text-center mb-3">
-                            <button type="button" id="add-address" class="btn btn-secondary">Add Another Address</button>
+                            <button type="button" id="add-address" class="btn btn-secondary">Add Another Addresses</button>
                             <button type="submit" class="btn btn-primary">Update Addresses</button>
                         </div>
                     </form>

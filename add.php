@@ -85,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 </div>
                             </div>
                         </div>
-                        <p  class="col-md-4 col-form-label text-md-end" type="button" id="add-address" >Add Another Address...</p>
+                        <p  class="col-md-4 col-form-label text-md-end" type="button" id="add-address" >Add Another Addresses...</p>
 
                         <div class="mb-3 row">
                             <div class="col-md-6 offset-md-4">
