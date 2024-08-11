@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else if (!str_contains($_POST["email"], "@")) {
         $error = "Email format is incorrect.";
     } else {
-        // Consulta para verificar si el email ya existe
+        // Query to verify if the email already exists
         $statement = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
         $statement->bindParam(":email", $_POST["email"]);
         $statement->execute();
@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($statement->rowCount() > 0) {
             $error = "This email is taken.";
         } else {
-            // Inserción de nuevo usuario
+            // Insertion of new user
             $conn
                 ->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)")
                 ->execute([
@@ -27,13 +27,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ":password" => password_hash($_POST["password"], PASSWORD_BCRYPT),
                 ]);
 
-            // Obtener el usuario recién insertado
+            // Get the newly inserted user
             $statement = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
             $statement->bindParam(":email", $_POST["email"]);
             $statement->execute();
             $user = $statement->fetch(PDO::FETCH_ASSOC);
 
-            // Iniciar sesión y redirigir
+            // Login and redirect
             session_start();
             $_SESSION["user"] = $user;
 

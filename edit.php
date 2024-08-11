@@ -11,7 +11,7 @@ if (!isset($_SESSION["user"])) {
 
 $id = $_GET["id"];
 
-// Obtener el contacto
+// Get the contact
 $contactStatement = $conn->prepare("SELECT * FROM contacts WHERE id = :id LIMIT 1");
 $contactStatement->execute([":id" => $id]);
 
@@ -23,14 +23,14 @@ if ($contactStatement->rowCount() == 0) {
 
 $contact = $contactStatement->fetch(PDO::FETCH_ASSOC);
 
-// Verificar si el usuario tiene permiso para editar el contacto
+// Check if the user has permission to edit the contact
 if ((int)$contact["user_id"] !== (int)$_SESSION["user"]["id"]) {
     http_response_code(403);
     echo("HTTP 403 UNAUTHORIZED");
     exit;
 }
 
-// Obtener direcciones asociadas al contacto
+// Get addresses associated with the contact
 $addressStatement = $conn->prepare("SELECT * FROM addresses WHERE contact_id = :contact_id");
 $addressStatement->execute([":contact_id" => $id]);
 $addresses = $addressStatement->fetchAll(PDO::FETCH_ASSOC);
@@ -46,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $name = $_POST["name"];
         $phoneNumber = $_POST["phone_number"];
 
-        // Actualizar contacto
+        // Update contact
         $contactStatement = $conn->prepare("UPDATE contacts SET name = :name, phone_number = :phone_number WHERE id = :id");
         $contactStatement->execute([
             ":id" => $id,

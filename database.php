@@ -1,8 +1,8 @@
 <?php
 
 $dsn = 'mysql:host=localhost;dbname=contacts_app';
-$user = 'root'; // o el nombre de usuario que corresponda
-$password = ''; // o la contraseña que corresponda
+$user = 'root';
+$password = ''; 
 
 try {
     $conn = new PDO($dsn, $user, $password);

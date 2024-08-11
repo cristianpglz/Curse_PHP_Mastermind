@@ -8,7 +8,7 @@ if (!isset($_SESSION["user"])) {
     exit;
 }
 
-// Obtener el ID del contacto desde la URL
+// Get contact ID from URL
 $id = $_GET["id"];
 
 if (!is_numeric($id)) {
@@ -17,7 +17,7 @@ if (!is_numeric($id)) {
     exit;
 }
 
-// Obtener el contacto para verificar la existencia y el permiso
+// Get the contact to verify existence and permission
 $contactStatement = $conn->prepare("SELECT * FROM contacts WHERE id = :id LIMIT 1");
 $contactStatement->execute([":id" => $id]);
 
@@ -29,14 +29,14 @@ if ($contactStatement->rowCount() == 0) {
 
 $contact = $contactStatement->fetch(PDO::FETCH_ASSOC);
 
-// Verificar si el usuario tiene permiso para editar el contacto
+// Check if the user has permission to edit the contact
 if ((int)$contact["user_id"] !== (int)$_SESSION["user"]["id"]) {
     http_response_code(403);
     echo "HTTP 403 UNAUTHORIZED";
     exit;
 }
 
-// Obtener direcciones asociadas al contacto
+// Get addresses associated with the contact
 $addressStatement = $conn->prepare("SELECT * FROM addresses WHERE contact_id = :contact_id");
 $addressStatement->execute([":contact_id" => $id]);
 $addresses = $addressStatement->fetchAll(PDO::FETCH_ASSOC);
@@ -46,10 +46,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST["delete_selected"])) {
         $deleteIds = $_POST["delete_ids"] ?? [];
         if (!empty($deleteIds)) {
-            $deleteIds = array_map('intval', $deleteIds); // Sanitiza los IDs
+            $deleteIds = array_map('intval', $deleteIds); // Sanitize IDs
             $placeholders = rtrim(str_repeat('?,', count($deleteIds)), ',');
             $deleteAddressesStatement = $conn->prepare("DELETE FROM addresses WHERE id IN ($placeholders) AND contact_id = ?");
-            $deleteIds[] = $id; // Añadir el ID del contacto como último parámetro
+            $deleteIds[] = $id; //Add contact ID as last parameter
             $deleteAddressesStatement->execute($deleteIds);
             
             $_SESSION["flash"] = ["message" => "Selected addresses deleted."];
@@ -58,20 +58,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Manejo de actualización de direcciones
+    // Address update handling
     $addresses = $_POST["addresses"] ?? [];
 
     if (empty($addresses)) {
         $error = "Please add at least one address.";
     } else {
-        // Eliminar direcciones existentes
+        // Delete existing addresses
         $deleteAddressesStatement = $conn->prepare("DELETE FROM addresses WHERE contact_id = :contact_id");
         $deleteAddressesStatement->execute([":contact_id" => $id]);
 
-        // Insertar nuevas direcciones
+        // Insert new addresses
         $addressStatement = $conn->prepare("INSERT INTO addresses (contact_id, address) VALUES (:contact_id, :address)");
         foreach ($addresses as $address) {
-            $address = trim($address); // Eliminar espacios en blanco
+            $address = trim($address); // Remove whitespace
             if (!empty($address)) {
                 $addressStatement->execute([
                     ":contact_id" => $id,
@@ -123,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
 
                         <div class="text-center mb-3">
-                            <button type="button" id="add-address" class="btn btn-secondary">Add Another Addresses</button>
+                            <button type="button" id="add-address" class="btn btn-secondary">Add Another Address</button>
                             <button type="submit" class="btn btn-primary">Update Addresses</button>
                         </div>
                     </form>
@@ -186,10 +186,10 @@ document.addEventListener('click', function(event) {
     display: grid;
     justify-content: center;
 }
-/* Estilo para hacer el cuadro de dirección más pequeño */
+/* Style to make the address box smaller */
 .small-address {
     width: 100%;
-    max-width: 200px; /* Tamaño máximo del cuadro de dirección */
+    max-width: 200px; /* Maximum address box size */
 }
 .text-center 
 

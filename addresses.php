@@ -4,7 +4,7 @@ require "database.php";
 
 session_start();
 
-// Verifica si el usuario está autenticado
+// Check if the user is authenticated
 if (!isset($_SESSION["user"])) {
   header("Location: login.php");
   exit();
@@ -12,7 +12,7 @@ if (!isset($_SESSION["user"])) {
 
 $userId = $_SESSION['user']['id'];
 
-// Obtén todas las direcciones del usuario
+// Get all user addresses
 $addressesStatement = $conn->prepare("
     SELECT id, address 
     FROM addresses 
@@ -21,7 +21,7 @@ $addressesStatement = $conn->prepare("
 $addressesStatement->execute([':user_id' => $userId]);
 $addresses = $addressesStatement->fetchAll(PDO::FETCH_ASSOC);
 
-// Maneja la eliminación de una dirección
+// Handles deletion of an address
 if (isset($_GET['delete_id'])) {
     $deleteId = $_GET['delete_id'];
     
@@ -31,7 +31,7 @@ if (isset($_GET['delete_id'])) {
     ");
     $deleteStatement->execute([':id' => $deleteId, ':user_id' => $userId]);
     
-    // Redirige para evitar el reenvío del formulario
+    // Redirect to avoid form resubmission
     header("Location: addresses.php");
     exit();
 }
